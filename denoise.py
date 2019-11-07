@@ -1,10 +1,9 @@
 import numpy as np
 import pywt
-from pypwt import Wavelets
 from scipy import stats
 
 
-def pywt_swt(data, level=5, thresh_coe=6):
+def pywt_swt(data, level=5, thresh_coe=10):
     r'''
     Use `pywt`(CPU) to swt_denoise.
 
@@ -30,7 +29,7 @@ def pywt_swt(data, level=5, thresh_coe=6):
     return data_rec
 
 
-def pypwt_swt(data, level=5, thresh_coe=6):
+def pypwt_swt(data, level=5, thresh_coe=10):
     r'''
     Use `pypwt`(GPU) to swt_denoise.
 
@@ -38,6 +37,10 @@ def pypwt_swt(data, level=5, thresh_coe=6):
 
     See https://github.com/pierrepaleo/pypwt/issues/5
     '''
+    try:
+        from pypwt import Wavelets
+    except ImportError:
+        raise ImportError("Please go https://github.com/pierrepaleo/pypwt and install pypwt")
     thresh_coe *= 0.67
     W = Wavelets(data, "db8", level, do_swt=1)
     W.forward()
@@ -57,3 +60,32 @@ def hard_threshold(data, value, substitute=0):
     # In-place hard threshold using factor * MAD
     cond = np.less(np.absolute(data), value)
     data[cond] = substitute
+
+
+if __name__ == "__main__":
+    from time import time
+    import matplotlib.pyplot as plt
+
+    ori_data = np.load("./data_and_res/ori_data.npy")
+    fig = plt.figure(figsize=(15, 15))
+
+    ax_ori = fig.add_subplot(311)
+    ax_ori.plot(ori_data)
+    ax_ori.set_title("original data")
+
+    cpu_start = time()
+    cpu_denoised_data = pywt_swt(ori_data)
+    print("cpu denoise: {:f}s".format(time()-cpu_start))
+    ax_cpu = fig.add_subplot(312)
+    ax_cpu.plot(cpu_denoised_data)
+    ax_cpu.set_title("cpu_denoise")
+
+    gpu_start = time()
+    gpu_denoised_data = pypwt_swt(ori_data)
+    print("gpu denoise: {:f}s".format(time()-gpu_start))
+    ax_gpu = fig.add_subplot(313)
+    ax_gpu.plot(gpu_denoised_data)
+    ax_gpu.set_title("gpu_denoise")
+
+    fig.savefig("./data_and_res/result.png")
+    plt.close()

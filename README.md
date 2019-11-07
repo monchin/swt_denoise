@@ -24,3 +24,13 @@ the paper said ` Next, we compute the median absolute deviation (MAD) of the wav
 `d_i = pywt.threshold(coeffs[i][1], thresh_coe * mad, 'hard')`:
 
 the paper said ` When using the UDWT, it has previously been observed that hard thresholding simultaneously retains good smoothness properties and good l2 performance (Lang et al., 1995). By visual inspection of several samples, we confirmed that hard thresholding retained more of the true peak shape than soft thresholding in our spectra (data not shown). `
+
+## Test
+
+Go to this dir and run `python denoise.py`
+
+If you want to use GPU to accelerate your computation, you need to install [`pypwt`](https://github.com/pierrepaleo/pypwt).
+
+The result wave would be stored in `./data_and_res/result.png` just as below.
+
+![result](./data_and_res/result.png)
